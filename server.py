@@ -3,18 +3,15 @@ import os
 
 app = Flask(__name__, static_folder='public', static_url_path='')
 
-# Base de datos simulada en memoria para los alias y saldos
 LEDGER_DB = {
     "daniel_node": 100000.0,
     "henry_node": 50000.0
 }
 
-# 1. Ruta para servir la interfaz del Neobanco
 @app.route('/')
 def home():
     return app.send_static_file('index.html')
 
-# 2. API para transferencia P2P con firma criptográfica
 @app.route('/api/v1/send', methods=['POST'])
 def send_transaction():
     data = request.get_json() or {}
@@ -28,7 +25,6 @@ def send_transaction():
     if sender not in LEDGER_DB or LEDGER_DB[sender] < amount:
         return jsonify({"status": "error", "message": "Fondos insuficientes o cuenta inexistente"}), 400
 
-    # Registrar la liquidación en el Ledger
     if receiver not in LEDGER_DB:
         LEDGER_DB[receiver] = 0.0
         
@@ -40,7 +36,6 @@ def send_transaction():
         "message": f"Transferencia exitosa. Nuevo saldo sender: {LEDGER_DB[sender]}"
     }), 200
 
-# 3. API Administrativa para inyección de capital (Mint)
 @app.route('/api/v1/admin/mint', methods=['POST'])
 def admin_mint():
     data = request.get_json() or {}
@@ -48,7 +43,6 @@ def admin_mint():
     amount = data.get('amount', 0)
     token = data.get('token')
     
-    # Validación del token de privilegio del CEO
     if token != "VORTEX_CEO_2026":
         return jsonify({"status": "error", "message": "Privilegios insuficientes. Token inválido."}), 403
         
@@ -65,5 +59,4 @@ def admin_mint():
     }), 200
 
 if __name__ == '__main__':
-    print("[CORE] Servidor de Vortex activo y escuchando en el puerto 5000...")
     app.run(host='0.0.0.0', port=5000, debug=False)
