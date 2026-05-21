@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Ledger | Digital Banking Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght=500;700;900&family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tweetnacl/1.0.3/nacl-fast.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #030712; --bg-card: rgba(15, 23, 42, 0.65);
+            --primary: #00d4ff; --primary-glow: rgba(0, 212, 255, 0.2);
+            --success: #00ffa3; --success-glow: rgba(0, 255, 163, 0.2);
+            --border: rgba(255, 255, 255, 0.08); --text-main: #f3f4f6; --text-muted: #64748b;
+        }
+        body {
+            font-family: 'Urbanist', sans-serif; background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 5% 10%, rgba(0, 212, 255, 0.06) 0%, transparent 35%), radial-gradient(circle at 95% 90%, rgba(0, 255, 163, 0.06) 0%, transparent 35%);
+            background-attachment: fixed; color: var(--text-main); margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+        }
+        nav {
+            background: rgba(3, 7, 18, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); padding: 20px 60px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 14px; }
+        .logo-box {
+            width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--success));
+            border-radius: 12px; display: grid; place-items: center; font-size: 20px; color: #030712; box-shadow: 0 0 20px rgba(0, 212, 255, 0.35);
+        }
+        .nav-logo span {
+            font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 900; letter-spacing: 2px;
+            background: linear-gradient(to right, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .status-pill {
+            background: rgba(0, 255, 163, 0.06); border: 1px solid rgba(0, 255, 163, 0.3); color: var(--success);
+            padding: 8px 16px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; display: flex; align-items: center; gap: 10px;
+        }
+        .status-dot { width: 7px; height: 7px; background-color: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulse 1.8s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+        .app-wrapper { max-width: 1400px; width: 100%; margin: 40px auto; padding: 0 30px; box-sizing: border-box; flex-grow: 1; }
+        .gateway-card {
+            background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border);
+            border-radius: 20px; padding: 24px 30px; margin-bottom: 35px; display: flex; align-items: center; gap: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .gateway-info h3 { margin: 0 0 4px 0; font-family: 'Orbitron', sans-serif; font-size: 15px; letter-spacing: 1px; color: var(--primary); }
+        .gateway-info p { margin: 0; font-size: 13px; color: var(--text-muted); }
+        .gateway-input-box { flex-grow: 1; position: relative; }
+        .gateway-input-box i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--primary); }
+        .gateway-input-box input {
+            width: 100%; background-color: rgba(3, 7, 18, 0.6); border: 1px solid var(--border); border-radius: 12px;
+            padding: 15px 20px 15px 55px; color: white; font-family: monospace; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease;
+        }
+        .gateway-input-box input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); outline: none; }
+        .banking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; }
+        @media (max-width: 1024px) { .banking-grid { grid-template-columns: 1fr; } }
+        .neobank-card {
+            background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border);
+            border-radius: 24px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; position: relative;
+        }
+        .card-title-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 20px; }
+        .card-title-area h2 { margin: 0; font-family: 'Orbitron', sans-serif; font-size: 18px; letter-spacing: 1.5px; font-weight: 700; }
+        .neobank-card.client-panel h2 { color: #ffffff; } .neobank-card.admin-panel h2 { color: var(--success); }
+        .card-title-area i { font-size: 22px; } .neobank-card.client-panel .card-title-area i { color: var(--primary); } .neobank-card.admin-panel .card-title-area i { color: var(--success); }
+        .form-row { margin-bottom: 25px; } .form-row label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .input-field-wrapper { position: relative; } .input-field-wrapper i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .input-field-wrapper input { width: 100%; background-color: rgba(3, 7, 18, 0.5); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px 16px 55px; color: white; font-size: 15px; box-sizing: border-box; transition: all 0.3s ease; }
+        .input-field-wrapper input:focus { outline: none; } .client-panel .input-field-wrapper input:focus { border-color: var(--primary); box-shadow: 0 0 12px var(--primary-glow); } .admin-panel .input-field-wrapper input:focus { border-color: var(--success); box-shadow: 0 0 12px var(--success-glow); }
+        button { width: 100%; padding: 18px; border: none; border-radius: 14px; font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.3s ease; margin-top: 10px; }
+        .btn-premium-client { background: linear-gradient(135deg, #00d4ff, #0077b6); color: #030712; }
+        .btn-premium-admin { background: transparent; border: 1px solid var(--success); color: var(--success); }
+        .btn-premium-admin:hover { background: linear-gradient(135deg, #00ffa3, #059669); color: #030712; border-color: transparent; }
+        .audit-terminal { background-color: rgba(2, 6, 23, 0.8); border: 1px solid var(--border); border-radius: 14px; padding: 18px; font-family: 'monospace'; font-size: 12.5px; height: 160px; overflow-y: auto; margin-top: 30px; line-height: 1.6; }
+        .client-panel .audit-terminal { color: #38bdf8; border-left: 4px solid var(--primary); } .admin-panel .audit-terminal { color: #34d399; border-left: 4px solid var(--success); }
+        footer { background-color: #020617; border-top: 1px solid var(--border); padding: 40px 60px; text-align: center; margin-top: auto; }
+        .footer-legal { max-width: 1100px; margin: 0 auto; font-size: 11px; color: #475569; line-height: 1.8; text-align: justify; }
+        .footer-copyright { margin-top: 20px; font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--primary); letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-logo"><div class="logo-box"><i class="fa-solid fa-vortex"></i></div><span>VORTEX BANCO DIGITAL</span></div>
+        <div class="status-pill"><div class="status-dot"></div> CANAL CIFRADO ACTIVO</div>
+    </nav>
+    <div class="app-wrapper">
+        <div class="gateway-card">
+            <div><i class="fa-solid fa-network-wired" style="color: var(--primary); font-size: 26px;"></i></div>
+            <div class="gateway-info"><h3>GATEWAY DE CONEXIÓN CENTRAL</h3><p>Enlace de infraestructura privada hacia el núcleo del Ledger en Bogotá</p></div>
+            <div class="gateway-input-box"><i class="fa-solid fa-link"></i><input type="text" id="endpoint_red" placeholder="Pegue el túnel activo de Termux (Ej: https://xxxx.lhr.life)"></div>
+        </div>
+        <div class="banking-grid">
+            <div class="neobank-card client-panel">
+                <div class="card-title-area"><h2>LIQUIDACIÓN GLOBAL P2P</h2><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="form-row"><label>ID Cuenta Remitente (Tu Alias)</label><div class="input-field-wrapper"><input type="text" id="tx_sender" placeholder="Ej: daniel_node"><i class="fa-solid fa-id-card-clip"></i></div></div>
+                <div class="form-row"><label>ID Cuenta Destinatario (Receptor)</label><div class="input-field-wrapper"><input type="text" id="tx_receiver" placeholder="Ej: henry_node"><i class="fa-solid fa-user-check"></i></div></div>
+                <div class="form-row"><label>Monto Unidades Financieras</label><div class="input-field-wrapper"><input type="number" id="tx_amount" placeholder="0.00"><i class="fa-solid fa-wallet"></i></div></div>
+                <button class="btn-premium-client" onclick="ejecutarTransferencia()">Firmar Envío Criptográfico</button>
+                <div class="audit-terminal" id="user_console">[SYSTEM] Entorno Ed25519 cargado con éxito.</div>
+            </div>
+            <div class="neobank-card admin-panel">
+                <div class="card-title-area"><h2>EMISIÓN CENTRAL Y RESERVA SOBERANA</h2><i class="fa-solid fa-building-columns"></i></div>
+                <div class="form-row"><label>Cuenta de Destino Beneficiario</label><div class="input-field-wrapper"><input type="text" id="mint_alias" placeholder="Ej: henry_node"><i class="fa-solid fa-user-plus"></i></div></div>
+                <div class="form-row"><label>Efectivo Validado en Custodia Física</label><div class="input-field-wrapper"><input type="number" id="mint_amount" placeholder="Ingrese el capital real verificado"><i class="fa-solid fa-vault"></i></div></div>
+                <div class="form-row"><label>Token de Privilegio Administrativo</label><div class="input-field-wrapper"><input type="password" id="admin_token" value="VORTEX_CEO_2026"><i class="fa-solid fa-fingerprint"></i></div></div>
+                <button class="btn-premium-admin" onclick="inyectarSaldoEfectivo()">Validar Depósito y Acuñar Saldo</button>
+                <div class="audit-terminal" id="admin_console">[AUDIT] Módulo contable centralizado listo.</div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="footer-legal"><strong>DECLARACIÓN DE CUSTODIA INTERNA Y MARCO REGULATORIO:</strong> El ecosistema tecnológico de Vortex Ledger opera bajo un entorno de circuito cerrado de carácter estrictamente corporativo para la gestión de activos privados. Los balances reflejados representan vales de custodia sobre reservas en efectivo físico en la caja centralizadora. Esta infraestructura no realiza captación masiva ni habitual de dineros del público, no ejerce intermediación financiera regulada por el mercado cambiario tradicional (ACH), ni genera ningún tipo de interés comercial. El sistema se acoge a las leyes de Habeas Data y Protección de Datos Personales (Ley 1581 de 2012) en la República de Colombia.</div>
+        <div class="footer-copyright">VORTEX LEDGER DIGITAL BANKING SYSTEM © 2026 • SOBERANÍA TECNOLÓGICA CORPORATIVA</div>
+    </footer>
+    <script>
+        function logUser(msg) { const el = document.getElementById('user_console'); el.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`; el.scrollTop = el.scrollHeight; }
+        function logAdmin(msg) { const el = document.getElementById('admin_console'); el.innerHTML += `<br>[${new Date().toLocaleTimeString()}] ${msg}`; el.scrollTop = el.scrollHeight; }
+        async function ejecutarTransferencia() {
+            const endpoint = document.getElementById('endpoint_red').value.replace(/\/$/, "");
+            const sender = document.getElementById('tx_sender').value; const receiver = document.getElementById('tx_receiver').value; const amount = document.getElementById('tx_amount').value;
+            if(!endpoint || !sender || !receiver || !amount) { alert("Error: Complete todos los campos."); return; }
+            let privateKeyHex = localStorage.getItem(`priv_${sender}`);
+            if (!privateKeyHex) {
+                const pair = nacl.sign.keyPair(); privateKeyHex = Array.from(pair.secretKey).map(b => b.toString(16).padStart(2, '0')).join('');
+                localStorage.setItem(`priv_${sender}`, privateKeyHex); logUser(`[ÉXITO] Bóveda de llaves locales inicializada.`);
+            }
+            const mensajePlano = `${sender}:${receiver}:${amount}`; logUser(`[FIRMA] Sellando datos de transferencia...`);
+            const msgBytes = new TextEncoder().encode(mensajePlano); const privKeyBytes = new Uint8Array(privateKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            const firmaBytes = nacl.sign.detached(msgBytes, privKeyBytes); const firmaB64 = btoa(String.fromCharCode.apply(null, firmaBytes));
+            try {
+                const response = await fetch(`${endpoint}/api/v1/send`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sender: sender, receiver: receiver, amount: parseFloat(amount), message: mensajePlano, signature: firmaB64 })
+                });
+                const res = await response.json(); logUser(response.status === 200 ? `[LIQUIDADO] Transferencia grabada: ${res.message}` : `[RECHAZADO] ${res.message}`);
+            } catch (e) { logUser(`[CRÍTICO] Error de comunicación en red.`); }
+        }
+        async function inyectarSaldoEfectivo() {
+            const endpoint = document.getElementById('endpoint_red').value.replace(/\/$/, "");
+            const alias = document.getElementById('mint_alias').value; const amount = document.getElementById('mint_amount').value; const token = document.getElementById('admin_token').value;
+            if(!endpoint || !alias || !amount || !token) { alert("Error: Parámetros incompletos."); return; }
+            try {
+                const response = await fetch(`${endpoint}/api/v1/admin/mint`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alias: alias, amount: parseFloat(amount), token: token })
+                });
+                const res = await response.json(); logAdmin(response.status === 200 ? `[COMPLETADO] Depósito físico verificado y saldo inyectado.` : `[DENEGADO] ${res.message}`);
+            } catch(e) { logAdmin(`[CRÍTICO] Servidor central fuera de línea.`); }
+        }
+    </script>
+</body>
+</html>
